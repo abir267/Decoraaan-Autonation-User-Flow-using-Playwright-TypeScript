@@ -1,0 +1,85 @@
+{
+  "cookies": [
+    {
+      "name": "_u_lang",
+      "value": "en",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1771995499,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.1799423863.1771909098",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1806469099.049065,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ssl_ta",
+      "value": "eyJhbGciOiJIUzUxMiJ9.eyJodWJJZCI6IjY5NDhlNGJmMzZkZjE3MDgyOTRhNjk4OCIsInN1YiI6IjY3Mzg2ZWNmODYxYjhkM2NjZGJjZTZjNSIsInVzZXJUeXBlIjoiQURNSU4iLCJleHAiOjE3NzE5OTU0OTgsImF1dGgiOiJBRE1JTl9HUk9VUF9ERUZBVUxUIFJPTEVfQURNSU4iLCJpYXQiOjE3NzE5MDkwOTh9.VJiG1JdnS1XWCy-c3pcU60JQzz8SpJ1ONgtiott2_y__daWcQK1zztIOXYiARR2xPV8OGPjU3pPXaGrBVfW5Bw",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1771995498,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ssl_tr",
+      "value": "327baa27-5a4f-44bc-8f9f-b72e568628da",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1771995498,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ssl_uid",
+      "value": "67386ecf861b8d3ccdbce6c5",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1771995498,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ssl_usid",
+      "value": "undefined",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1771995498,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ssl_rl",
+      "value": "ADMIN",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1771995498,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_F81J9PF5HS",
+      "value": "GS2.1.s1771909098$o1$g1$t1771909099$j59$l0$h0",
+      "domain": ".decoraan.com",
+      "path": "/",
+      "expires": 1806469099.096906,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}
