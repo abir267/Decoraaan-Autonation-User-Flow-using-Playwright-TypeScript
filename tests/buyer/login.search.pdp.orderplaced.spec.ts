@@ -145,6 +145,37 @@ console.log("✅ Order number is visible");
 
     await page.waitForTimeout(5000);
 
+    // 15) Go to My Account
+    try {
+      const myAccountBtn = page.getByRole("button", { name: /my account/i });
+      await expect(myAccountBtn).toBeVisible({ timeout: 10_000 });
+      await myAccountBtn.click();
+      console.log("✅ Clicked My Account");
+
+      await page.waitForTimeout(3000);
+    } catch (error) {
+      console.error("❌ My Account navigation failed:", error);
+    }
+
+    // 16) Open Order History
+    try {
+      const orderHistoryBtn = page.getByRole("link", { name: /order history/i });
+      await expect(orderHistoryBtn).toBeVisible({ timeout: 10_000 });
+      await orderHistoryBtn.click();
+      console.log("✅ Clicked Order History");
+
+      await page.waitForURL(/\/buyer\/order-history/, { timeout: 15_000 });
+      await expect(page).toHaveURL(/\/buyer\/order-history/);
+      console.log("✅ Order History page opened successfully");
+
+      await page.waitForTimeout(5000);
+    } catch (error) {
+      console.error("❌ Order History navigation failed:", error);
+    }
+
+     await page.waitForTimeout(5000);
+
+
     // Optional: wait for success page/toast (adjust once known)
     // await expect(page.locator("text=/order placed|success|thank you/i")).toBeVisible({ timeout: 60_000 });
   });
