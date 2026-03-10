@@ -1,29 +1,102 @@
-import { test, expect } from "@playwright/test"
-import dotenv from "dotenv"
-import path from "path"
+import { test } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
 
-// ✅ Always load .env from project root
-dotenv.config({ path: path.resolve(process.cwd(), ".env") })
+import { AuthSignInPage } from "../../pages/buyer/AuthSignInPage";
+import { BuyerHomePage } from "../../pages/buyer/BuyerHomePage";
+import { PdpPage } from "../../pages/buyer/PdpPage";
+import { CartPage } from "../../pages/buyer/CartPage";
+import { CheckoutPage } from "../../pages/buyer/CheckoutPage";
+import { saveLatestOrder } from "../../utils/orderStorage";
+import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
 
-test("Buyer Sign In - Success", async ({ page }) => {
-  // quick check so you see the real problem immediately
-  if (!process.env.AUTH_SIGNIN_URL) throw new Error("AUTH_SIGNIN_URL is missing in .env")
-  if (!process.env.BUYER_EMAIL) throw new Error("BUYER_EMAIL is missing in .env")
-  if (!process.env.BUYER_PASSWORD) throw new Error("BUYER_PASSWORD is missing in .env")
-  if (!process.env.BUYER_APP_URL) throw new Error("BUYER_APP_URL is missing in .env")
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-  await page.goto(process.env.AUTH_SIGNIN_URL, { waitUntil: "domcontentloaded" })
+test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () => {
+  test("Buyer places order and opens order history", async ({ page }) => {
+    test.setTimeout(180_000);
 
-  await page.locator("#username").fill(process.env.BUYER_EMAIL)
-  await page.locator("#password").fill(process.env.BUYER_PASSWORD)
+    const productQuery = "Chair 0099";
+    const suggestionText = "Chair 0099 [Product For Automation]";
+    const expectedPdpUrl =
+      "https://pre-live.decoraan.com/pdp/chair-0099-product-for-automation-699e74c742b06051854e7742";
 
-  await Promise.all([
-    page.waitForURL((url) => !url.toString().includes("/sign-in"), { timeout: 60_000 }),
-    page.locator("button.submit").click(),
-  ])
+    const scenarioName = "Buyer places order and opens order history";
 
-  const buyerHost = new URL(process.env.BUYER_APP_URL).host
-  await expect(page).toHaveURL(new RegExp(buyerHost.replace(/\./g, "\\.")))
+    const authSignInPage = new AuthSignInPage(page);
+    const buyerHomePage = new BuyerHomePage(page);
+    const pdpPage = new PdpPage(page);
+    const cartPage = new CartPage(page);
+    const checkoutPage = new CheckoutPage(page);
 
-  console.log("✅ Sign in successfully")
-})
+    try {
+      await authSignInPage.gotoSignIn();
+      await authSignInPage.signInAsBuyer();
+      await authSignInPage.verifyBuyerRedirect();
+      console.log("✅ Sign in successfully");
+
+      await buyerHomePage.searchProduct(productQuery);
+      await buyerHomePage.openSuggestion(suggestionText, expectedPdpUrl);
+      console.log("✅ PDP opened successfully");
+
+      await pdpPage.addToCart();
+      console.log("✅ Clicked Add to Cart");
+
+      await pdpPage.goToCart();
+      console.log("✅ Navigated to Cart page");
+
+      await cartPage.clickCheckout();
+      console.log("✅ Navigated to Checkout page");
+
+      await checkoutPage.selectBillingSameAsShipping();
+      console.log("✅ Checked Billing same as Shipping");
+
+      await checkoutPage.clickNextToPayment();
+      console.log("✅ Moved to Payment page");
+
+      await checkoutPage.selectCashOnDelivery();
+      console.log("✅ Selected Cash on Delivery");
+
+      await checkoutPage.clickConfirm();
+      console.log("✅ Clicked Confirm");
+
+      const orderId =
+        await checkoutPage.verifyOrderPlacedSuccessfullyAndGetOrderId();
+
+      saveLatestOrder(orderId);
+
+      console.log(`✅ Order placed successfully: ${orderId}`);
+      console.log(`✅ Latest order saved in project: ${orderId}`);
+
+      await page.waitForTimeout(5000);
+
+      await checkoutPage.goToMyAccount();
+      console.log("✅ Clicked My Account");
+
+      await page.waitForTimeout(3000);
+
+      await checkoutPage.openOrderHistory();
+      console.log("✅ Order History page opened successfully");
+
+      await page.waitForTimeout(5000);
+
+      await upsertAutomationStatus({
+        scenario: scenarioName,
+        result: "Pass",
+        comments: `Order placed successfully. Order ID: ${orderId}`,
+        checkedTime: new Date().toLocaleString(),
+      });
+
+      await page.waitForTimeout(5000);
+    } catch (error: any) {
+      await upsertAutomationStatus({
+        scenario: scenarioName,
+        result: "Fail",
+        comments: error?.message || "Test failed",
+        checkedTime: new Date().toLocaleString(),
+      });
+
+      throw error;
+    }
+  });
+});

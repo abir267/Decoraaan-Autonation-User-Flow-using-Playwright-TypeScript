@@ -1,24 +1,31 @@
-import { Page, Locator } from "@playwright/test";
-import { BasePage } from "../common/BasePage";
-import "dotenv/config";
+import { Page, Locator, expect } from "@playwright/test";
 
-export class BuyerHomePage extends BasePage {
-  readonly profileIcon: Locator;
+export class BuyerHomePage {
+  readonly page: Page;
+  readonly searchInput: Locator;
 
   constructor(page: Page) {
-    super(page);
-    // Update later if you have a stable selector (data-testid recommended)
-    this.profileIcon = page.locator("header").locator("img, svg").first();
+    this.page = page;
+    this.searchInput = page.locator("#mat-input-0");
   }
 
-  async openHome() {
-    // Because your BUYER_URL is sign-in URL, go to base domain home
-    const homeUrl = process.env.BUYER_URL!.replace("/sign-in", "");
-    await this.goto(homeUrl);
+  async searchProduct(productQuery: string) {
+    await expect(this.searchInput).toBeVisible({ timeout: 15_000 });
+    await this.searchInput.fill(productQuery);
   }
 
-  async assertLoggedIn() {
-    // Simple check: you should NOT be on sign-in page
-    await this.waitForUrlContains("decoraan");
+  async openSuggestion(suggestionText: string, expectedPdpUrl: string) {
+    const suggestionItem = this.page
+      .locator("h3", { hasText: suggestionText })
+      .first();
+
+    await expect(suggestionItem).toBeVisible({ timeout: 15_000 });
+
+    await Promise.all([
+      this.page.waitForURL(expectedPdpUrl, { timeout: 60_000 }),
+      suggestionItem.click(),
+    ]);
+
+    await expect(this.page).toHaveURL(expectedPdpUrl);
   }
 }
