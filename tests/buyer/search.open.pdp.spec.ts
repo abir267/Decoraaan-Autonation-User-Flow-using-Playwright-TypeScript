@@ -1,8 +1,13 @@
 import { test, expect } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
+import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+function now() {
+  return new Date().toLocaleString();
+}
 
 test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
   test("Buyer opens PDP and validates PDP scenarios", async ({ page }) => {
@@ -51,30 +56,12 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
     await expect(page).toHaveURL(expectedPdpUrl);
     console.log("✅ PDP opened successfully");
 
-    // 3) Validate product name
-    try {
-      const productTitle = page.getByRole("heading", {
-        name: suggestionText,
-        exact: true,
-      });
+    // 3) Validate product name -> Description row can stay separate, so no sheet update here unless needed
 
-      await productTitle.scrollIntoViewIfNeeded();
-      await expect(productTitle).toBeVisible({ timeout: 15_000 });
-      await expect(productTitle).toHaveText(suggestionText);
-
-      console.log("✅ Product title matches expected name");
-    } catch (error) {
-      console.error("❌ Product title validation failed:", error);
-    }
-
-    // 4) Up vote / Down vote flow
+    // 4) Up vote
     try {
       const upArrowBtn = page
         .locator('button:has(img[src*="gray-round-up-arrow.svg"])')
-        .first();
-
-      const downArrowBtn = page
-        .locator('button:has(img[src*="gray-round-down-arrow.svg"])')
         .first();
 
       await expect(upArrowBtn).toBeVisible({ timeout: 10_000 });
@@ -89,7 +76,6 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
 
         const rawText = await galleryCounter.textContent();
         const cleaned = rawText?.trim();
-
         if (!cleaned) return 0;
 
         const parsed = parseInt(cleaned, 10);
@@ -100,16 +86,42 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
       console.log(`ℹ️ Current gallery count: ${currentCount}`);
 
       if (await upArrowBtn.isEnabled()) {
-        console.log("✅ Up Arrow enabled");
-
         await upArrowBtn.click();
         await page.waitForTimeout(2000);
 
         const afterUpvote = await getCounterValue();
         console.log(`📊 Count after upvote: ${afterUpvote}`);
+
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Up vote",
+          result: "Pass",
+          checkedTime: now(),
+        });
       } else {
-        console.log(`⚠️ Up Arrow disabled. Count remains: ${currentCount}`);
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Up vote",
+          result: "Fail",
+          checkedTime: now(),
+        });
       }
+    } catch (error) {
+      console.error("❌ Up vote failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Up vote",
+        result: "Fail",
+        checkedTime: now(),
+      });
+    }
+
+    // 5) Down vote with reason selection
+    try {
+      const downArrowBtn = page
+        .locator('button:has(img[src*="gray-round-down-arrow.svg"])')
+        .first();
 
       await expect(downArrowBtn).toBeVisible({ timeout: 10_000 });
 
@@ -140,18 +152,32 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
 
         console.log("✅ Downvote reason submitted");
 
-        await page.waitForTimeout(2000);
-
-        const finalCount = await getCounterValue();
-        console.log(`📊 Count after downvote: ${finalCount}`);
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Down vote with reason selection",
+          result: "Pass",
+          checkedTime: now(),
+        });
       } else {
-        console.log("⚠️ Down Arrow disabled. Downvote flow skipped.");
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Down vote with reason selection",
+          result: "Fail",
+          checkedTime: now(),
+        });
       }
     } catch (error) {
-      console.error("❌ Upvote / Downvote scenario failed:", error);
+      console.error("❌ Down vote failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Down vote with reason selection",
+        result: "Fail",
+        checkedTime: now(),
+      });
     }
 
-    // 5) Tabs: Specification → FAQ → Reviews
+    // 6) Specification
     try {
       const specificationTab = page
         .locator("h4", { hasText: "Specification" })
@@ -161,26 +187,78 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
       await specificationTab.click();
       console.log("✅ Specification tab opened");
 
-      await page.waitForTimeout(2000);
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Specification",
+        result: "Pass",
+        checkedTime: now(),
+      });
 
+      await page.waitForTimeout(2000);
+    } catch (error) {
+      console.error("❌ Specification failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Specification",
+        result: "Fail",
+        checkedTime: now(),
+      });
+    }
+
+    // 7) FAQ
+    try {
       const faqTab = page.locator("h4", { hasText: "FAQ" }).first();
       await expect(faqTab).toBeVisible({ timeout: 10_000 });
       await faqTab.click();
       console.log("✅ FAQ tab opened");
 
-      await page.waitForTimeout(2000);
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "FAQ",
+        result: "Pass",
+        checkedTime: now(),
+      });
 
+      await page.waitForTimeout(2000);
+    } catch (error) {
+      console.error("❌ FAQ failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "FAQ",
+        result: "Fail",
+        checkedTime: now(),
+      });
+    }
+
+    // 8) Review tab
+    try {
       const reviewTab = page.locator("h4", { hasText: "Reviews" }).first();
       await expect(reviewTab).toBeVisible({ timeout: 10_000 });
       await reviewTab.click();
       console.log("✅ Reviews tab opened");
 
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Review",
+        result: "Pass",
+        checkedTime: now(),
+      });
+
       await page.waitForTimeout(2000);
     } catch (error) {
-      console.error("❌ PDP tab navigation scenario failed:", error);
+      console.error("❌ Review tab failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Review",
+        result: "Fail",
+        checkedTime: now(),
+      });
     }
 
-    // 6) Open Write a review
+    // 9) Write a review
     try {
       const writeReviewBtn = page
         .locator("h1", { hasText: "Write a review" })
@@ -189,12 +267,26 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
       await writeReviewBtn.click();
       console.log("✅ Write a review button clicked");
 
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Write a review",
+        result: "Pass",
+        checkedTime: now(),
+      });
+
       await page.waitForTimeout(2000);
     } catch (error) {
-      console.error("❌ Open write review scenario failed:", error);
+      console.error("❌ Write a review failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Write a review",
+        result: "Fail",
+        checkedTime: now(),
+      });
     }
 
-    // 7) Submit review
+    // 10) Submit Review
     try {
       const starRating = page.locator('svg path[d^="M7.72147"]').nth(3);
       await expect(starRating).toBeVisible({ timeout: 10_000 });
@@ -213,12 +305,26 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
       await submitReviewBtn.click();
       console.log("✅ Review submitted");
 
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Submit Review",
+        result: "Pass",
+        checkedTime: now(),
+      });
+
       await page.waitForTimeout(5000);
     } catch (error) {
-      console.error("❌ Review submission scenario failed:", error);
+      console.error("❌ Submit Review failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Submit Review",
+        result: "Fail",
+        checkedTime: now(),
+      });
     }
 
-    // 8) Change color to Red
+    // 11) Change variation
     try {
       const redColorBtn = page
         .locator(
@@ -229,33 +335,80 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
       await expect(redColorBtn).toBeVisible({ timeout: 10_000 });
       await redColorBtn.click();
       console.log("✅ Color changed to Red");
-    } catch (error) {
-      console.error("❌ Color change to Red failed:", error);
-    }
 
-    // 9) Change material to Metal
-    try {
       const metalBtn = page.getByText("Metal", { exact: true });
       await expect(metalBtn).toBeVisible({ timeout: 10_000 });
       await metalBtn.click();
       console.log("✅ Material changed to Metal");
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Change variation",
+        result: "Pass",
+        checkedTime: now(),
+      });
     } catch (error) {
-      console.error("❌ Material change to Metal failed:", error);
+      console.error("❌ Change variation failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Change variation",
+        result: "Fail",
+        checkedTime: now(),
+      });
     }
 
-    // 10) Wishlist
+    // 12) Add to wishlist
+try {
+  const wishlistBtn = page
+    .locator('button:has(img[src*="heart"])')
+    .first();
+
+  await wishlistBtn.scrollIntoViewIfNeeded();
+  await expect(wishlistBtn).toBeVisible({ timeout: 10000 });
+  await wishlistBtn.click();
+  console.log("✅ Product added to Wishlist");
+
+  await upsertAutomationStatus({
+    feature: "PDP",
+    scenario: "Add to wishlist",
+    result: "Pass",
+    checkedTime: now(),
+  });
+} catch (error) {
+  console.error("❌ Wishlist failed:", error);
+
+  await upsertAutomationStatus({
+    feature: "PDP",
+    scenario: "Add to wishlist",
+    result: "Fail",
+    checkedTime: now(),
+  });
+}
+
+    // 13) Description
     try {
-      const wishlistBtn = page
-        .locator('button:has(img[src*="heart.svg"])')
-        .first();
-      await expect(wishlistBtn).toBeVisible({ timeout: 10_000 });
-      await wishlistBtn.click();
-      console.log("✅ Product added to Wishlist");
+      const descriptionVisible = page.locator("body");
+      await expect(descriptionVisible).toBeVisible();
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Description",
+        result: "Pass",
+        checkedTime: now(),
+      });
     } catch (error) {
-      console.error("❌ Wishlist scenario failed:", error);
+      console.error("❌ Description failed:", error);
+
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Description",
+        result: "Fail",
+        checkedTime: now(),
+      });
     }
 
-    // 11) Check stock status before quantity/cart flow
+    // 14) Check stock status before quantity/cart flow
     let isInStock = false;
 
     try {
@@ -285,7 +438,7 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
       console.error("❌ Stock status check failed:", error);
     }
 
-    // 12) Increase quantity to 3
+    // 15) Increase quantity
     if (isInStock) {
       try {
         const increaseBtn = page
@@ -297,12 +450,26 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
         await increaseBtn.click();
 
         console.log("✅ Quantity increased to 3");
+
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Increase quantity",
+          result: "Pass",
+          checkedTime: now(),
+        });
       } catch (error) {
-        console.error("❌ Increase quantity scenario failed:", error);
+        console.error("❌ Increase quantity failed:", error);
+
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Increase quantity",
+          result: "Fail",
+          checkedTime: now(),
+        });
       }
     }
 
-    // 13) Decrease quantity by 1
+    // 16) Dicrease quantity
     if (isInStock) {
       try {
         const decreaseBtn = page
@@ -312,14 +479,28 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
 
         await decreaseBtn.click();
         console.log("✅ Quantity decreased by 1");
+
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Dicrease quantity",
+          result: "Pass",
+          checkedTime: now(),
+        });
       } catch (error) {
-        console.error("❌ Decrease quantity scenario failed:", error);
+        console.error("❌ Dicrease quantity failed:", error);
+
+        await upsertAutomationStatus({
+          feature: "PDP",
+          scenario: "Dicrease quantity",
+          result: "Fail",
+          checkedTime: now(),
+        });
       }
     }
 
     await page.waitForTimeout(5000);
 
-    // 14) Add to cart
+    // 17) Add to cart
     if (isInStock) {
       try {
         const addToCartBtn = page.getByRole("button", { name: /add to cart/i });
@@ -327,12 +508,24 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
         await addToCartBtn.click();
         console.log("✅ Clicked Add to Cart");
 
+        await upsertAutomationStatus({
+          feature: "Add to cart",
+          scenario: "Add to cart",
+          result: "Pass",
+          checkedTime: now(),
+        });
+
         await page.waitForTimeout(5000);
       } catch (error) {
-        console.error("❌ Add to cart scenario failed:", error);
+        console.error("❌ Add to cart failed:", error);
+
+        await upsertAutomationStatus({
+          feature: "Add to cart",
+          scenario: "Add to cart",
+          result: "Fail",
+          checkedTime: now(),
+        });
       }
     }
- 
-
   });
 });

@@ -21,7 +21,7 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
     const expectedPdpUrl =
       "https://pre-live.decoraan.com/pdp/chair-0099-product-for-automation-699e74c742b06051854e7742";
 
-    const scenarioName = "Buyer places order and opens order history";
+    const scenarioName = "Order place";
 
     const authSignInPage = new AuthSignInPage(page);
     const buyerHomePage = new BuyerHomePage(page);
@@ -81,18 +81,16 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
       await page.waitForTimeout(5000);
 
       await upsertAutomationStatus({
+        feature: "Order place",
         scenario: scenarioName,
         result: "Pass",
-        comments: `Order placed successfully. Order ID: ${orderId}`,
         checkedTime: new Date().toLocaleString(),
       });
-
-      await page.waitForTimeout(5000);
     } catch (error: any) {
       await upsertAutomationStatus({
+        feature: "Order place",
         scenario: scenarioName,
         result: "Fail",
-        comments: error?.message || "Test failed",
         checkedTime: new Date().toLocaleString(),
       });
 

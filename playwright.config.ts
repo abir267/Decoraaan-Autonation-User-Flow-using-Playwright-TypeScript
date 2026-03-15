@@ -1,14 +1,12 @@
-import { defineConfig as playwrightDefineConfig } from '@playwright/test';
+import { defineConfig } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 export default defineConfig({
-  //globalSetup: require.resolve("./global-setup"),
-
   testDir: "./tests",
   use: {
     headless: process.env.HEADLESS === "true",
   },
 });
-function defineConfig(config: { globalSetup: string; testDir: string; use: { headless: boolean; }; }) {
-  return playwrightDefineConfig(config);
-}
-

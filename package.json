@@ -1,17 +1,24 @@
 {
   "name": "decoraan-e2e",
   "version": "1.0.0",
-  "description": "",
+  "description": "Decoraan Playwright Automation",
   "main": "index.js",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "commonjs",
+
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+
+  "keywords": [],
+  "author": "Abir",
+  "license": "ISC",
+
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.3.0"
   },
+
   "dependencies": {
     "dotenv": "^17.3.1",
     "googleapis": "^171.4.0"
