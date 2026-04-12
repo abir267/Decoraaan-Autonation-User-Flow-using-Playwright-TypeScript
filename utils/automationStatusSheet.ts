@@ -1,8 +1,5 @@
-import dotenv from "dotenv";
-import path from "path";
 import { google } from "googleapis";
-
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+import { getGoogleAuth } from "./googleAuth";
 
 type AutomationStatusRow = {
   feature: string;
@@ -15,35 +12,12 @@ function normalize(value?: string) {
   return (value || "").trim().toLowerCase();
 }
 
-function getGoogleAuth() {
-  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  if (!clientEmail || !privateKey) {
-    throw new Error(
-      "Missing GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY in .env"
-    );
-  }
-
-  return new google.auth.GoogleAuth({
-    credentials: {
-      client_email: clientEmail,
-      private_key: privateKey,
-    },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-}
-
 export async function upsertAutomationStatus(row: AutomationStatusRow) {
   const spreadsheetId = process.env.AUTOMATION_STATUS_SHEET_ID;
   const sheetName = process.env.AUTOMATION_STATUS_SHEET_NAME || "Sheet1";
 
   if (!spreadsheetId) {
     throw new Error("AUTOMATION_STATUS_SHEET_ID is missing in .env");
-  }
-
-  if (!sheetName) {
-    throw new Error("AUTOMATION_STATUS_SHEET_NAME is missing in .env");
   }
 
   const auth = getGoogleAuth();

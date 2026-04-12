@@ -1,6 +1,6 @@
 import { Page, Locator, expect } from "@playwright/test";
 
-export class PdpPage {
+export class PdpPageE2E {
   readonly page: Page;
 
   readonly productTitle: (title: string) => Locator;

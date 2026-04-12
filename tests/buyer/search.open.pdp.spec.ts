@@ -2,12 +2,9 @@ import { test, expect } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
+import { now } from "../../utils/timeHelper";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
-
-function now() {
-  return new Date().toLocaleString();
-}
 
 test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
   test("Buyer opens PDP and validates PDP scenarios", async ({ page }) => {
@@ -359,32 +356,32 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
     }
 
     // 12) Add to wishlist
-try {
-  const wishlistBtn = page
-    .locator('button:has(img[src*="heart"])')
-    .first();
+    try {
+      const wishlistBtn = page
+        .locator('button:has(img[src*="heart"])')
+        .first();
 
-  await wishlistBtn.scrollIntoViewIfNeeded();
-  await expect(wishlistBtn).toBeVisible({ timeout: 10000 });
-  await wishlistBtn.click();
-  console.log("✅ Product added to Wishlist");
+      await wishlistBtn.scrollIntoViewIfNeeded();
+      await expect(wishlistBtn).toBeVisible({ timeout: 10_000 });
+      await wishlistBtn.click();
+      console.log("✅ Product added to Wishlist");
 
-  await upsertAutomationStatus({
-    feature: "PDP",
-    scenario: "Add to wishlist",
-    result: "Pass",
-    checkedTime: now(),
-  });
-} catch (error) {
-  console.error("❌ Wishlist failed:", error);
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Add to wishlist",
+        result: "Pass",
+        checkedTime: now(),
+      });
+    } catch (error) {
+      console.error("❌ Wishlist failed:", error);
 
-  await upsertAutomationStatus({
-    feature: "PDP",
-    scenario: "Add to wishlist",
-    result: "Fail",
-    checkedTime: now(),
-  });
-}
+      await upsertAutomationStatus({
+        feature: "PDP",
+        scenario: "Add to wishlist",
+        result: "Fail",
+        checkedTime: now(),
+      });
+    }
 
     // 13) Description
     try {

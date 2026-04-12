@@ -2,12 +2,9 @@ import { test, expect } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
+import { now } from "../../utils/timeHelper";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
-
-function now() {
-  return new Date().toLocaleString();
-}
 
 test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () => {
   test("Buyer places order up to Confirm step", async ({ page }) => {

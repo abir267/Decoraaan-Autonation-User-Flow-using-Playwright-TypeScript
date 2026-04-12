@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 
 import { AuthSignInPage } from "../../pages/buyer/AuthSignInPage";
+import { now } from "../../utils/timeHelper";
 import { BuyerHomePage } from "../../pages/buyer/BuyerHomePage";
 import { PdpPage } from "../../pages/buyer/PdpPage";
 import { CartPage } from "../../pages/buyer/CartPage";
@@ -84,14 +85,14 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
         feature: "Order place",
         scenario: scenarioName,
         result: "Pass",
-        checkedTime: new Date().toLocaleString(),
+        checkedTime: now(),
       });
     } catch (error: any) {
       await upsertAutomationStatus({
         feature: "Order place",
         scenario: scenarioName,
         result: "Fail",
-        checkedTime: new Date().toLocaleString(),
+        checkedTime: now(),
       });
 
       throw error;

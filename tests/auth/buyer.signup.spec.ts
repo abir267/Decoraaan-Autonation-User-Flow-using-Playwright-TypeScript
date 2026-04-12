@@ -3,10 +3,7 @@ import { AuthSignUpPage } from "../../pages/buyer/AuthSignUpPage";
 import { generateUser } from "../../utils/dataGenerator";
 import { saveUserToGoogleSheet } from "../../utils/googleSheets";
 import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
-
-function now() {
-  return new Date().toLocaleString();
-}
+import { now } from "../../utils/timeHelper";
 
 test.describe("Buyer Signup", () => {
   test("Buyer can sign up successfully and save credentials to Google Sheet", async ({ page }) => {
