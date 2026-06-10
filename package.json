@@ -5,13 +5,15 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-  "test": "playwright test",
-  "test:headed": "playwright test --headed",
-  "test:allure": "playwright test",
-  "allure:generate": "allure generate allure-results --clean -o allure-report",
-  "allure:open": "allure open allure-report",
-  "allure:serve": "allure serve allure-results"
-},
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:local": "playwright test",
+    "test:local:headed": "playwright test --headed",
+    "test:allure": "playwright test",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:open": "allure open allure-report",
+    "allure:serve": "allure serve allure-results"
+  },
   "keywords": [],
   "author": "Abir",
   "license": "ISC",

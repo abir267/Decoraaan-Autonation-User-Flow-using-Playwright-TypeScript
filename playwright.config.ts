@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local"), override: true });
 
 export default defineConfig({
   testDir: "./tests",
@@ -11,10 +12,27 @@ export default defineConfig({
     ["list"],
     ["allure-playwright", { resultsDir: "allure-results" }]
   ],
-  use: {
-    headless: process.env.HEADLESS === "true",
-    screenshot: "only-on-failure",
-    trace: "retain-on-failure",
-    video: "retain-on-failure"
-  }
+  projects: [
+    {
+      name: "buyer-flow",
+      testMatch: "**/buyer/login.search.pdp.orderplaced.spec.ts",
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
+    {
+      name: "seller-flow",
+      testMatch: "**/seller flow/seller.accept.order.spec.ts",
+      dependencies: ["buyer-flow"],
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
+  ],
 });

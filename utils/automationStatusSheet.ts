@@ -2,10 +2,10 @@ import { google } from "googleapis";
 import { getGoogleAuth } from "./googleAuth";
 
 type AutomationStatusRow = {
-  feature: string;
-  scenario: string;
-  result: "Pass" | "Fail";
-  checkedTime: string;
+feature: string;
+scenario: string;
+result: "Pass" | "Fail";
+checkedTime: string;
 };
 
 function normalize(value?: string) {

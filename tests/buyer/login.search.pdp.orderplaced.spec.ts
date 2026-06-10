@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
 import { now } from "../../utils/timeHelper";
+import { saveLatestOrder } from "../../utils/orderStorage";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
@@ -10,9 +11,9 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
   test("Buyer places order up to Confirm step", async ({ page }) => {
     test.setTimeout(180000);
 
-    const productQuery = "Chair 0099";
-    const suggestionText = "Chair 0099 [Product For Automation]";
-    const expectedPdpUrl =
+    const productQuery = process.env.BUYER_SEARCH_TERM || "Chair 0099";
+    const suggestionText = process.env.BUYER_SUGGESTION_TEXT || "Chair 0099 [Product For Automation]";
+    const expectedPdpUrl = process.env.BUYER_PDP_URL ||
       "https://pre-live.decoraan.com/pdp/chair-0099-product-for-automation-699e74c742b06051854e7742";
 
     try {
@@ -21,6 +22,7 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
         waitUntil: "domcontentloaded",
       });
 
+      await expect(page.locator("#username")).toBeVisible({ timeout: 30000 });
       await page.locator("#username").fill(process.env.BUYER_EMAIL!);
       await page.locator("#password").fill(process.env.BUYER_PASSWORD!);
 
@@ -171,12 +173,31 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
         checkedTime: now(),
       });
 
-      // 9) Confirm Order
-      const confirmBtn = page.getByRole("button", { name: /confirm/i });
-      await expect(confirmBtn).toBeVisible({ timeout: 10000 });
-      await confirmBtn.click();
 
-      console.log("✅ Clicked Confirm");
+     // 9) Confirm Order — intercept order-place API response
+let orderSellerItemId = "";
+let orderNumber = "";
+
+page.on("response", async (res) => {
+  if (res.url().includes("/checkout/order-place") && res.status() === 200) {
+    try {
+      const body = await res.json();
+      orderSellerItemId = body.data.content.orderId;
+      orderNumber = body.data.content.orderNumber;
+      saveLatestOrder(orderNumber, orderSellerItemId);
+      console.log(`✅ Order saved — Number: ${orderNumber} | SellerItemId: ${orderSellerItemId}`);
+    } catch (e) {
+      console.error("❌ Failed to parse order-place response", e);
+    }
+  }
+});
+
+const confirmBtn = page.getByRole("button", { name: /confirm/i });
+await expect(confirmBtn).toBeVisible({ timeout: 10000 });
+await confirmBtn.click();
+
+// Wait for order to be saved
+await page.waitForTimeout(3000);
 
       // 10) Order place
       await page.mouse.wheel(0, -1000);
@@ -226,15 +247,36 @@ test.describe("Buyer E2E: Login → PDP → Cart → Checkout → Payment", () =
 
       await page.waitForTimeout(3000);
 
-      // 13) Order history
-      const orderHistoryBtn = page.getByRole("link", { name: /order history/i });
-      await expect(orderHistoryBtn).toBeVisible({ timeout: 10000 });
-      await orderHistoryBtn.click();
-      console.log("✅ Clicked Order History");
+    // 13) Order history — intercept summary API to get real orderSellerItemId
+const summaryPromise = page.waitForResponse(
+  (res) => res.url().includes("/buyer/api/orders/summary") && res.status() === 200,
+  { timeout: 15000 }
+);
 
-      await page.waitForURL(/\/buyer\/order-history/, { timeout: 15000 });
-      await expect(page).toHaveURL(/\/buyer\/order-history/);
-      console.log("✅ Order History page opened successfully");
+const orderHistoryBtn = page.getByRole("link", { name: /order history/i });
+await expect(orderHistoryBtn).toBeVisible({ timeout: 10000 });
+await orderHistoryBtn.click();
+
+await page.waitForURL(/\/buyer\/order-history/, { timeout: 15000 });
+await expect(page).toHaveURL(/\/buyer\/order-history/);
+
+try {
+  const summaryResponse = await summaryPromise;
+  const summaryBody = await summaryResponse.text();
+  const summaryData = JSON.parse(summaryBody);
+  const realOrderSellerItemId = summaryData?.data?.content?.[0]?.orderItems?.[0]?.id;
+
+  if (realOrderSellerItemId) {
+    saveLatestOrder(orderNumber, realOrderSellerItemId);
+    console.log(`✅ Updated orderSellerItemId from summary: ${realOrderSellerItemId}`);
+  } else {
+    console.warn(`⚠️ Could not extract orderSellerItemId from summary response`);
+  }
+} catch (e) {
+  console.warn(`⚠️ Failed to intercept summary response:`, e);
+}
+
+console.log("✅ Order History page opened successfully");
 
       await upsertAutomationStatus({
         feature: "Order history",

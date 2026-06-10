@@ -10,10 +10,9 @@ test.describe("Buyer E2E: Login → PDP → Title + Gallery", () => {
   test("Buyer opens PDP and validates PDP scenarios", async ({ page }) => {
     test.setTimeout(180_000);
 
-    const productQuery = "Chair 0099";
-    const suggestionText = "Chair 0099 [Product For Automation]";
-    const expectedPdpUrl =
-      "https://pre-live.decoraan.com/pdp/chair-0099-product-for-automation-699e74c742b06051854e7742";
+    const productQuery = process.env.BUYER_SEARCH_TERM!;
+const suggestionText = process.env.BUYER_SUGGESTION_TEXT!;
+const expectedPdpUrl = process.env.BUYER_PDP_URL!;
 
     // 1) Login
     await page.goto(process.env.AUTH_SIGNIN_URL!, {

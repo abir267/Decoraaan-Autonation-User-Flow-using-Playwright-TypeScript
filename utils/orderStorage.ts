@@ -3,7 +3,7 @@ import path from "path";
 
 const filePath = path.resolve(process.cwd(), "storage", "latestOrder.json");
 
-export function saveLatestOrder(orderId: string) {
+export function saveLatestOrder(orderId: string, orderSellerItemId: string) {
   const dir = path.dirname(filePath);
 
   if (!fs.existsSync(dir)) {
@@ -15,6 +15,7 @@ export function saveLatestOrder(orderId: string) {
     JSON.stringify(
       {
         orderId,
+        orderSellerItemId,
         savedAt: new Date().toISOString(),
       },
       null,
@@ -24,7 +25,11 @@ export function saveLatestOrder(orderId: string) {
   );
 }
 
-export function getLatestOrder(): { orderId: string; savedAt: string } {
+export function getLatestOrder(): {
+  orderId: string;
+  orderSellerItemId: string;
+  savedAt: string;
+} {
   if (!fs.existsSync(filePath)) {
     throw new Error("No latestOrder.json file found.");
   }
