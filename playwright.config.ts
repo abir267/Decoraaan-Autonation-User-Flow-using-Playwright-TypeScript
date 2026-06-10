@@ -34,5 +34,26 @@ export default defineConfig({
         video: "retain-on-failure",
       },
     },
+    {
+      name: "new-user-flow",
+      testMatch: "**/buyer/new.user.order.spec.ts",
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
+    {
+      name: "new-user-seller-flow",
+      testMatch: "**/seller flow/seller.accept.order.spec.ts",
+      dependencies: ["new-user-flow"],
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
   ],
 });
