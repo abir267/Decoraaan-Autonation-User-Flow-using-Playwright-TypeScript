@@ -13,6 +13,7 @@ export default defineConfig({
     ["allure-playwright", { resultsDir: "allure-results" }]
   ],
   projects: [
+    // ── Existing User Flow ──────────────────────────────────────────────
     {
       name: "buyer-flow",
       testMatch: "**/buyer/login.search.pdp.orderplaced.spec.ts",
@@ -24,7 +25,7 @@ export default defineConfig({
       },
     },
     {
-      name: "seller-flow",
+      name: "existing-user-seller-accept-flow",
       testMatch: "**/seller flow/seller.accept.order.spec.ts",
       dependencies: ["buyer-flow"],
       use: {
@@ -34,6 +35,8 @@ export default defineConfig({
         video: "retain-on-failure",
       },
     },
+
+    // ── New User Flow ───────────────────────────────────────────────────
     {
       name: "new-user-flow",
       testMatch: "**/buyer/new.user.order.spec.ts",
@@ -45,7 +48,7 @@ export default defineConfig({
       },
     },
     {
-      name: "new-user-seller-flow",
+      name: "new-user-seller-accept-flow",
       testMatch: "**/seller flow/seller.accept.order.spec.ts",
       dependencies: ["new-user-flow"],
       use: {
@@ -55,9 +58,22 @@ export default defineConfig({
         video: "retain-on-failure",
       },
     },
+
+    // ── Guest User Flow ─────────────────────────────────────────────────
     {
       name: "guest-user-flow",
       testMatch: "**/buyer/guest.user.order.spec.ts",
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
+    {
+      name: "guest-user-seller-accept-flow",
+      testMatch: "**/seller flow/seller.accept.order.spec.ts",
+      dependencies: ["guest-user-flow"],
       use: {
         headless: process.env.HEADLESS === "true",
         screenshot: "only-on-failure",

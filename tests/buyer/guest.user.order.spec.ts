@@ -214,9 +214,19 @@ console.log("✅ Filled OTP: 1234");
 await page.locator('input[type="submit"][value="Success"]').click();
 console.log("✅ Clicked Success");
 
-// ── 12) Verify order placed ─────────────────────────────────────────────
+// ── 12) Verify order placed & extract order number ──────────────────────
 await page.waitForURL(/ssldev\.com|decoraan/, { timeout: 30000 });
 await checkoutPage.verifyOrderPlacedSuccessfully();
+
+// Extract order number from thank you page
+const orderText = await page.locator('text=/your order #/i').first().innerText();
+const orderMatch = orderText.match(/#([\d-]+)/);
+if (orderMatch) {
+  orderNumber = orderMatch[1];
+  saveLatestOrder(orderNumber, orderNumber); // temporary, will update from seller panel
+  console.log(`✅ Guest order number extracted: ${orderNumber}`);
+}
+
 console.log("✅ Order placed successfully");
 
 

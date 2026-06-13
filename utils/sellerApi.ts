@@ -54,6 +54,55 @@ export async function sellerLogin(): Promise<string> {
   return rawToken;
 }
 
+export async function getOrderSellerItemIdByOrderNumber(
+  token: string,
+  orderNumber: string
+): Promise<string> {
+  console.log(`🔍 Fetching orderSellerItemId for order: ${orderNumber}`);
+
+  const response = await fetch(
+    `${API_BASE_URL}/services/order/api/orders/order-list?page=0&size=10&sort=desc`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Authorization": `Bearer ${token}`,
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Time-Zone": "Asia/Dhaka",
+        "Origin": "http://order.ssldev.com",
+        "Referer": "http://order.ssldev.com/",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      },
+      body: JSON.stringify({
+        orderProcessStatus: ["ORDER_RECEIVED"],
+        orderNumber: orderNumber,
+        orderDateFrom: null,
+        orderDateTo: null,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Failed to fetch order list: ${response.status} — ${errorBody}`);
+  }
+
+  const data = await response.json();
+  console.log(`📋 Order list response: ${JSON.stringify(data, null, 2)}`);
+
+  const orderSellerItemId = data?.data?.content?.[0]?.id;
+
+  if (!orderSellerItemId) {
+    throw new Error(`Could not find orderSellerItemId for order ${orderNumber}`);
+  }
+
+  console.log(`✅ Got orderSellerItemId: ${orderSellerItemId}`);
+  return orderSellerItemId;
+}
+
 export async function acceptOrder(
   token: string,
   orderSellerItemId: string

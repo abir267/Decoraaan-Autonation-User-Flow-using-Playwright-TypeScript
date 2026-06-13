@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 import { getLatestOrder } from "../../utils/orderStorage";
-import { sellerLogin, acceptOrder } from "../../utils/sellerApi";
+import { sellerLogin, getOrderSellerItemIdByOrderNumber, acceptOrder } from "../../utils/sellerApi";
 import { upsertAutomationStatus } from "../../utils/automationStatusSheet";
 import { now } from "../../utils/timeHelper";
 
@@ -21,7 +21,14 @@ test.describe("Seller Flow: Accept Order via API", () => {
     const token = await sellerLogin();
     expect(token, "Seller token must be returned").toBeTruthy();
 
-    await acceptOrder(token, orderSellerItemId);
+    // If orderSellerItemId is not a 24-char hex, fetch the real one
+    let realOrderSellerItemId = orderSellerItemId;
+    if (orderSellerItemId.length < 24) {
+      console.log(`⚠️ Short ID detected, fetching real orderSellerItemId...`);
+      realOrderSellerItemId = await getOrderSellerItemIdByOrderNumber(token, orderId);
+    }
+
+    await acceptOrder(token, realOrderSellerItemId);
 
     console.log(`✅ Order ${orderId} accepted successfully by seller`);
 
