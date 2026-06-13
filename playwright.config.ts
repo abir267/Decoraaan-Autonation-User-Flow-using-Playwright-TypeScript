@@ -55,5 +55,15 @@ export default defineConfig({
         video: "retain-on-failure",
       },
     },
+    {
+      name: "guest-user-flow",
+      testMatch: "**/buyer/guest.user.order.spec.ts",
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
   ],
 });
