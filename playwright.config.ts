@@ -81,5 +81,17 @@ export default defineConfig({
         video: "retain-on-failure",
       },
     },
+
+    // ── PDP Flow ──────────────────────────────────────────────────────────
+    {
+      name: "pdp-flow",
+      testMatch: "**/buyer/search.open.pdp.spec.ts",
+      use: {
+        headless: process.env.HEADLESS === "true",
+        screenshot: "only-on-failure",
+        trace: "retain-on-failure",
+        video: "retain-on-failure",
+      },
+    },
   ],
 });
